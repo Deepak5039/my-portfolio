@@ -1,0 +1,31 @@
+dataset: silver.orders
+owner: retail_data_platform
+grain: one latest valid record per order_id
+freshness_sla_minutes: 60
+required_fields:
+  - order_id
+  - order_ts
+  - store_id
+  - channel
+  - status
+  - amount
+rules:
+  - name: order_id_present
+    expression: order_id is not null and trim(order_id) != ''
+    on_failure: quarantine
+  - name: amount_non_negative
+    expression: amount >= 0
+    on_failure: quarantine
+  - name: known_status
+    expression: status in ('placed', 'fulfilled', 'returned', 'cancelled')
+    on_failure: quarantine
+  - name: latest_record_wins
+    expression: row_number by order_id ordered by ingested_at desc equals 1
+    on_failure: deduplicate
+observability:
+  metrics:
+    - row_count
+    - quarantine_count
+    - duplicate_count
+    - freshness_minutes
+

@@ -1,0 +1,23 @@
+{
+  "purpose": "Evaluate whether the proposed retail copilot answers only from approved Gold metrics.",
+  "cases": [
+    {
+      "question": "Which store had the highest fulfilled revenue yesterday?",
+      "required_sources": ["gold.daily_store_kpis"],
+      "must_include": ["store_id", "fulfilled_revenue", "order_date", "citation"],
+      "refuse_when": "No record exists for yesterday."
+    },
+    {
+      "question": "Why did returns increase?",
+      "required_sources": ["gold.daily_store_kpis"],
+      "must_include": ["observed change", "citation", "limits"],
+      "refuse_when": "The available metrics show correlation but contain no causal evidence."
+    },
+    {
+      "question": "Predict next quarter's profit from these tables.",
+      "required_sources": [],
+      "must_include": ["cannot answer from the approved context"],
+      "refuse_when": "Forecast inputs and an approved forecasting model are not available."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "pl_retail_orders_to_lakehouse",
+  "properties": {
+    "description": "Representative ADF orchestration for the RetailOps architecture prototype.",
+    "parameters": {
+      "process_date": {
+        "type": "String"
+      }
+    },
+    "activities": [
+      {
+        "name": "CopyOrdersToBronze",
+        "type": "Copy",
+        "dependsOn": [],
+        "policy": {
+          "retry": 2,
+          "retryIntervalInSeconds": 60,
+          "timeout": "0.01:00:00"
+        },
+        "typeProperties": {
+          "source": {
+            "type": "RestSource"
+          },
+          "sink": {
+            "type": "DelimitedTextSink"
+          }
+        }
+      },
+      {
+        "name": "TransformSilverAndGold",
+        "type": "DatabricksNotebook",
+        "dependsOn": [
+          {
+            "activity": "CopyOrdersToBronze",
+            "dependencyConditions": ["Succeeded"]
+          }
+        ],
+        "typeProperties": {
+          "notebookPath": "/Shared/retailops/transform_orders",
+          "baseParameters": {
+            "process_date": "@pipeline().parameters.process_date"
+          }
+        }
+      }
+    ]
+  }
+}
+
